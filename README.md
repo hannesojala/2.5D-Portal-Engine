@@ -1,1 +1,4 @@
-# PortalCaster
+# Portal Engine
+ Todo: put explanation here.
+ 
+ See [this abandoned project](ProtoDoom) for a gif showing an example. This engine is more advanced.
