@@ -3,7 +3,7 @@
 Engine::Engine(unsigned int width, unsigned int height) :
     running(true),
     window_width(width), window_height(height),
-    main_window(Window("PortalCaster", width, height)),
+    main_window(Window("Engine", width, height)),
     time_init(SDL_GetPerformanceCounter()),
     time_prev(0), time_curr(time_init), dt_seconds(0.0), time_total_seconds(0.0),
     player({{0,0,0}, 0}),
@@ -12,12 +12,13 @@ Engine::Engine(unsigned int width, unsigned int height) :
 {
     walls = {
         // p1, p2, connecting sector
+        // Sector 0
         {{ 0, 0},{ 0,10}, -1},
         {{ 0,10},{10,10}, -1},
-        {{10,10},{10, 0},  1},
-        {{10, 0},{ 0, 0}, -1},
-
-        {{10, 0},{10,10},  0},
+        {{10,10},{10, 0},  1}, // =|
+        {{10, 0},{ 0, 0}, -1}, //  |
+        // Sector 1                |
+        {{10, 0},{10,10},  0}, // <-
         {{10,10},{20,10}, -1},
         {{20,10},{20, 0}, -1},
         {{20, 0},{10, 0}, -1}

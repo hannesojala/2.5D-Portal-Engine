@@ -6,7 +6,7 @@ SRC     := src
 INCLUDE := include
 LIB     := lib
 LIBRARIES   := -lSDL2
-EXECUTABLE  := PortalCaster
+EXECUTABLE  := 2.5D-Portal-Engine
 
 
 all: $(BIN)/$(EXECUTABLE)
