@@ -6,9 +6,6 @@
 
 using namespace linalg::aliases;
 
-struct Wall;
-struct Sector;
-
 struct Wall {
     float2 p1, p2;
     int next_sector;
@@ -17,15 +14,10 @@ struct Wall {
         float2 p3(ray.origin.x, ray.origin.y);
         float2 p4(ray.origin.x - ray.direction.x, ray.origin.y - ray.direction.y);
         float d = (p1.x-p2.x)*(p3.y-p4.y)-(p1.y-p2.y)*(p3.x-p4.x);
-        if (d == 0.0f)
-        {
-            return false;
-        }
+        if (d == 0.0f) return false;
         float t = ((p1.x-p3.x)*(p3.y-p4.y)-(p1.y-p3.y)*(p3.x-p4.x))/d;
         float u = ((p1.x-p2.x)*(p1.y-p3.y)-(p1.y-p2.y)*(p1.x-p3.x))/d;
-
-        if (t > 0.0f && t < 1.0f && u > 0)
-        {
+        if (t > 0.0f && t < 1.0f && u > 0) {
             *point = float2(p1.x + t * (p2.x-p1.x), p1.y + t * (p2.y-p1.y));
             return true;
         }
@@ -44,10 +36,10 @@ struct Sector {
     int walls_begin, walls_end;
 
     bool containsPoint(float2 point, const std::vector<Wall>& walls) {
-        Ray testRay = {point, {1, 1}}; // any direction works
+        Ray testRay = {point, {1, 1}}; // any ray direction works
         int numIntersections = 0;
         for (auto it = walls.begin() + walls_begin; it <= walls.begin() + walls_end; it++) {
-            float2 obligatory_point;
+            float2 obligatory_point; // make it so i dont have to find the point >:(
             if ((*it).rayIntersect(testRay, &obligatory_point))
                 numIntersections++;
         }

@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
         std::cout << arg << "\n";
     }
 
-    Engine engine(720, 480);
+    Engine engine(1200, 900);
     while(engine.running) {
         engine.startFrame();
         engine.events();

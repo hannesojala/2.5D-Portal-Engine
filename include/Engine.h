@@ -5,9 +5,9 @@
 #include <vector>
 #include <algorithm>
 
-const float FOV = 90 * 3.1415f / 180.0f;
-const float PLAYER_SPEED = 5.0f;
-const float MOUSE_SENSITIVITY = 0.001f;
+const float FOV                 = 90 * 3.1415f / 180.0f;
+const float PLAYER_SPEED        = 5.0f;
+const float MOUSE_SENSITIVITY   = 0.001f;
 
 using namespace linalg::aliases;
 
@@ -24,44 +24,43 @@ public:
     Engine(const Engine&) = delete;
     Engine operator=(const Engine&) = delete;
 
+    // Main loop
     void startFrame();
-
     void events();
     void update();
     void render();
-
     bool running;
 
 private:
 
-    // Once more states are implemented, use a map to create a finite state machine.
-    enum State {
+    // Game states/menus
+    enum State {    // Once more states are implemented, use a std::map to create a finite state machine. (sounds cool)
         WORLD, MAP
     };
 
+    // Window variables
     int window_width, window_height;
-
     Window main_window;
 
+    // Time variables
     Uint64 time_init;
     Uint64 time_prev;
     Uint64 time_curr;
     double dt_seconds;
     double time_total_seconds;
 
-    int2 relative_mouse_motion;
-
+    // Current game state
     Player player;
-
     State current_state;
     float map_zoom;
 
+    // Map data
     std::vector<Wall> walls;
     std::vector<Sector> sectors;
 
-    void renderMap();
-    void renderWorld();
+    // Rendering functions
+    void renderMap();       // Renders the map view
+    void renderWorld();     // Renders the fps view
+    // Renders each column with a recursive algorithm to determine visible sectors and draw them
     void renderSector(const Sector& sector, int col, Ray camera_ray, float radians);
-    void renderSolid(const Sector& sector, int col, float dist);
-    void renderPortal(int wall_id, const Sector& sector, int col, float dist, Ray camera_ray, float radians);
 };
