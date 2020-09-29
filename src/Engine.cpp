@@ -10,25 +10,35 @@ Engine::Engine(unsigned int width, unsigned int height) :
     current_state(MAP),
     map_zoom(32)
 {
-    walls = {
-        // p1, p2, connecting sector
-        // Sector 0
-        {{ 0, 0},{ 0,10}, -1},
-        {{ 0,10},{10,10}, -1},
-        {{10,10},{10, 0},  1}, // =|
-        {{10, 0},{ 0, 0}, -1}, //  |
-        // Sector 1                |
-        {{10, 0},{10,10},  0}, // <-
-        {{10,10},{20,10}, -1},
-        {{20,10},{20, 0}, -1},
-        {{20, 0},{10, 0}, -1}
-    };
-
-    sectors = {
-        // ceil, floor, walls slice begin, walls slice end
-        {2.0, 2.0, 0, 3},
-        {1.0, 1.0, 4, 8}
-    };
+    // Read map
+    std::ifstream map_file("map");
+    std::string line;
+    std::getline(map_file, line);
+    std::istringstream n_walls_line(line);
+    int n_walls;
+    n_walls_line >> n_walls;
+    for (int i = 0; i < n_walls; i++) {
+        std::getline(map_file, line);
+        std::cout << line << std::endl;
+        std::istringstream lines_stream(line);
+        float2 p1, p2;
+        int sec_id;
+        lines_stream >> p1.x >> p1.y >> p2.x >> p2.y >> sec_id;
+        walls.push_back({p1, p2, sec_id});
+    }
+    std::getline(map_file, line);
+    std::istringstream n_secs_line(line);
+    int n_secs;
+    n_secs_line >> n_secs;
+    for (int i = 0; i < n_secs; i++) {
+        std::getline(map_file, line);
+        std::cout << line << std::endl;
+        std::istringstream lines_stream(line);
+        float floor, ceil;
+        int w_begin, w_end;
+        lines_stream >> floor >> ceil >> w_begin >> w_end;
+        sectors.push_back({floor, ceil, w_begin, w_end});
+    }
 }
 
 Engine::~Engine() {

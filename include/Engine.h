@@ -3,7 +3,10 @@
 #include <util.h>
 #include <Sector.h>
 #include <vector>
-#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 const float FOV                 = 90 * 3.1415f / 180.0f;
 const float PLAYER_SPEED        = 5.0f;

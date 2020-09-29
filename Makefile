@@ -18,5 +18,5 @@ $(BIN)/$(EXECUTABLE): $(SRC)/*.cpp
 	$(CXX) $(CXX_FLAGS) -I$(INCLUDE) -L$(LIB) $^ -o $@ $(LIBRARIES)
 
 clean:
-	-rm $(BIN)/*
+	-rm $(BIN)/2.5D-Portal-Engine
 
