@@ -66,4 +66,7 @@ private:
     void renderWorld();     // Renders the fps view
     // Renders each column with recursively to determine visible sectors and draw them
     void renderSector(const Sector& sector, int col, Ray camera_ray, float radians);
+
+    // Helper
+    int2 worldToMap(float2 world_coords);
 };

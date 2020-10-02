@@ -113,7 +113,6 @@ void Engine::update() {
 }
 
 void Engine::render() {
-    // Rendering states choose to clear or not
     switch (current_state) {
     case WORLD :
         renderWorld();
@@ -128,24 +127,22 @@ void Engine::render() {
 void Engine::renderMap() {
     main_window.clear(RGBA{255,255,255,255});
     main_window.setColor(RGBA{0,0,0,255});
-    for (Sector sector : sectors) {
+    for (Sector sector : sectors) { // kind of a odd way to iterate through walls lmao
         for (auto it = walls.begin() + sector.walls_begin; it <= walls.begin() + sector.walls_end; it++) {
-            int2 p1 = int2(map_zoom * ((*it).p1 - player.pos.xy())) + int2{window_width/2, window_height/2};
-            int2 p2 = int2(map_zoom * ((*it).p2 - player.pos.xy())) + int2{window_width/2, window_height/2};
-            main_window.drawLine(p1.x , p1.y, p2.x, p2.y);
+            main_window.drawLine(worldToMap(it->p1).x , worldToMap(it->p1).y, worldToMap(it->p2).x, worldToMap(it->p2).y);
         }
     }
-    int2 player_map_direction{int(cos(player.angle)*map_zoom + window_width/2), int(sin(player.angle)*map_zoom + window_height/2)};
+    int2 player_map_direction{int(cos(player.angle) * map_zoom + window_width / 2 ), int(sin(player.angle) * map_zoom + window_height / 2)};
     main_window.drawLine(window_width/2, window_height/2, player_map_direction.x, player_map_direction.y);
 }
 
 void Engine::renderWorld() {
-    for (int col = 0; col < window_width; col++) {
-        float radians = player.angle + atan(window_width/window_height * FOV * float(col-window_width/2) / float(window_width/2));
+    for (int column = 0; column < window_width; column++) {
+        float radians = player.angle + atan(window_width/window_height * FOV * float(column-window_width/2) / float(window_width/2));
         Ray camera_ray({player.pos.xy(), {cos(radians), sin(radians)} });
-        for (Sector sector : sectors) { // naiive
+        for (Sector sector : sectors) { // naiive, breaks
             if (sector.containsPoint(player.pos.xy(), walls)) {
-                renderSector(sector, col, camera_ray, radians);
+                renderSector(sector, column, camera_ray, radians);
             }
         }
     }
@@ -153,43 +150,43 @@ void Engine::renderWorld() {
 
 void Engine::renderSector(const Sector& sector, int col, Ray camera_ray, float radians) {
     // Find nearest intersection in sectors walls
-    float min_dist = INFINITY;
-    int min_dist_wall = -1;
+    float dist_closest = INFINITY;
+    int closest_wall_id = -1;
     for (auto it = walls.begin() + sector.walls_begin; it <= walls.begin() + sector.walls_end; it++) {
-        float2 point;
-        if ((*it).facingFront(camera_ray) && (*it).rayIntersect(camera_ray, &point)) {
-            float eucDist = sqrt((player.pos.x-point.x)*(player.pos.x-point.x) + (player.pos.y-point.y)*(player.pos.y-point.y));
-            float dist = eucDist * cos(radians - player.angle);
-            if (dist < min_dist) {
-                min_dist = dist;
-                min_dist_wall = it - walls.begin();
+        float2 intersection_point;
+        if ((*it).facingFront(camera_ray) && (*it).rayIntersect(camera_ray, &intersection_point)) {
+            float dist_euc = sqrt((player.pos.x-intersection_point.x)*(player.pos.x-intersection_point.x) + (player.pos.y-intersection_point.y)*(player.pos.y-intersection_point.y));
+            float dist_flat = dist_euc * cos(radians - player.angle);
+            if (dist_flat < dist_closest) {
+                dist_closest = dist_flat;
+                closest_wall_id = it - walls.begin();
             }
         }
     }
 
     // Find top and bottom of the wall or portal
-    int wall_top = window_height/2 - (window_height/min_dist * (sector.ceil  - player.pos.z)) / (FOV);
-    int wall_bot = window_height/2 + (window_height/min_dist * (sector.floor + player.pos.z)) / (FOV);
+    int wall_top = window_height/2 - (window_height/dist_closest * (sector.ceil  - player.pos.z)) / (FOV);
+    int wall_bot = window_height/2 + (window_height/dist_closest * (sector.floor + player.pos.z)) / (FOV);
 
     // if the wall exists
-    if (min_dist_wall >= 0) {
+    if (closest_wall_id >= 0) {
         // if the wall does not continue to another sector
-        if (walls[min_dist_wall].next_sector == -1) {
-            main_window.drawLineRGBA(col, wall_top, col, wall_bot, RGBA {0, 0, (unsigned char) (255/std::max(min_dist+1.0f, 1.0f)), 255} );
+        if (walls[closest_wall_id].next_sector == -1) {
+            main_window.drawLineRGBA(col, wall_top, col, wall_bot, RGBA {0, 0, (unsigned char) (255/std::max(dist_closest+1.0f, 1.0f)), 255} );
         }
         // if the wall does go to another sector
         else {
             // Render next sector through portal
-            if (walls[min_dist_wall].next_sector >= 0) {
-                renderSector(sectors[walls[min_dist_wall].next_sector], col, camera_ray, radians);
+            if (walls[closest_wall_id].next_sector >= 0) {
+                renderSector(sectors[walls[closest_wall_id].next_sector], col, camera_ray, radians);
 
                 // Render top and bottom
-                int topTop = window_height/2 - (window_height/min_dist * (sector.ceil - player.pos.z)) / (FOV);
-                int botTop = window_height/2 - (window_height/min_dist * (sectors[walls[min_dist_wall].next_sector].ceil - player.pos.z)) / (FOV);
+                int topTop = window_height/2 - (window_height/dist_closest * (sector.ceil - player.pos.z)) / (FOV);
+                int botTop = window_height/2 - (window_height/dist_closest * (sectors[walls[closest_wall_id].next_sector].ceil - player.pos.z)) / (FOV);
                 main_window.drawLineRGBA(col, topTop, col, botTop, RGBA {255, 0, 255, 255} );
 
-                int botBot = window_height/2 + (window_height/min_dist * (sectors[walls[min_dist_wall].next_sector].floor + player.pos.z)) / (FOV);
-                int topBot = window_height/2 + (window_height/min_dist * (sector.floor + player.pos.z)) / (FOV);
+                int botBot = window_height/2 + (window_height/dist_closest * (sectors[walls[closest_wall_id].next_sector].floor + player.pos.z)) / (FOV);
+                int topBot = window_height/2 + (window_height/dist_closest * (sector.floor + player.pos.z)) / (FOV);
                 main_window.drawLineRGBA(col, topBot, col, botBot, RGBA {255, 255, 0 , 255} );
             }
         }
@@ -197,4 +194,8 @@ void Engine::renderSector(const Sector& sector, int col, Ray camera_ray, float r
     // Draw the ceiling and floor of the sector
     if (wall_top > 0) main_window.drawLineRGBA(col, 0, col, wall_top, RGBA{0,255,0,255});
     if (wall_bot < window_height) main_window.drawLineRGBA(col, window_height, col, wall_bot, RGBA{255,0,0,255});
+}
+
+int2 Engine::worldToMap(float2 world_coords) {
+    return int2{map_zoom * (world_coords - player.pos.xy())} + int2{window_width/2, window_height/2};
 }
