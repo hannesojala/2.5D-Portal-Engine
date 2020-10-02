@@ -64,6 +64,6 @@ private:
     // Rendering functions
     void renderMap();       // Renders the map view
     void renderWorld();     // Renders the fps view
-    // Renders each column with a recursive algorithm to determine visible sectors and draw them
+    // Renders each column with recursively to determine visible sectors and draw them
     void renderSector(const Sector& sector, int col, Ray camera_ray, float radians);
 };

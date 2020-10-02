@@ -6,11 +6,11 @@ Engine::Engine(unsigned int width, unsigned int height) :
     main_window(Window("Engine", width, height)),
     time_init(SDL_GetPerformanceCounter()),
     time_prev(0), time_curr(time_init), dt_seconds(0.0), time_total_seconds(0.0),
-    player({{0,0,0}, 0}),
+    player({{1,1,0}, 0}),
     current_state(MAP),
     map_zoom(32)
 {
-    // Read map
+    // Read map - needs to be a bit more concise lmao
     std::ifstream map_file("map");
     std::string line;
     std::getline(map_file, line);
@@ -126,8 +126,8 @@ void Engine::render() {
 }
 
 void Engine::renderMap() {
-    main_window.clear({255,255,255,255});
-    main_window.setColor({0,0,0,255});
+    main_window.clear(RGBA{255,255,255,255});
+    main_window.setColor(RGBA{0,0,0,255});
     for (Sector sector : sectors) {
         for (auto it = walls.begin() + sector.walls_begin; it <= walls.begin() + sector.walls_end; it++) {
             int2 p1 = int2(map_zoom * ((*it).p1 - player.pos.xy())) + int2{window_width/2, window_height/2};
@@ -135,8 +135,8 @@ void Engine::renderMap() {
             main_window.drawLine(p1.x , p1.y, p2.x, p2.y);
         }
     }
-    int2 arrow{int(cos(player.angle)*map_zoom + window_width/2), int(sin(player.angle)*map_zoom + window_height/2)};
-    main_window.drawLine(window_width/2, window_height/2, arrow.x, arrow.y);
+    int2 player_map_direction{int(cos(player.angle)*map_zoom + window_width/2), int(sin(player.angle)*map_zoom + window_height/2)};
+    main_window.drawLine(window_width/2, window_height/2, player_map_direction.x, player_map_direction.y);
 }
 
 void Engine::renderWorld() {
